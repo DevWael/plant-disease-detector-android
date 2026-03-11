@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.PlantDisease" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF0A1A0F</item>
+        <item name="android:statusBarColor">#FF0A1A0F</item>
+        <item name="android:navigationBarColor">#FF0D1F13</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

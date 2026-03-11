@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">كاشف أمراض النباتات</string>
+
+    <!-- Tabs -->
+    <string name="tab_scanner">الماسح</string>
+    <string name="tab_history">السجل</string>
+    <string name="tab_settings">الإعدادات</string>
+
+    <!-- Scanner -->
+    <string name="scanner_title">ماسح النباتات</string>
+    <string name="scanner_take_photo">التقاط صورة</string>
+    <string name="scanner_choose_gallery">اختيار من المعرض</string>
+    <string name="scanner_analyzing">جارٍ التحليل…</string>
+    <string name="scanner_cancel">إلغاء</string>
+    <string name="scanner_scan_another">مسح آخر</string>
+    <string name="scanner_save">حفظ المسح</string>
+    <string name="scanner_saved">تم حفظ المسح!</string>
+    <string name="scanner_empty_title">امسح نباتاً</string>
+    <string name="scanner_empty_desc">التقط صورة أو اختر من المعرض للتحليل</string>
+
+    <!-- Analysis Result -->
+    <string name="result_healthy">سليم</string>
+    <string name="result_diseased">مصاب</string>
+    <string name="result_plant_name">اسم النبات</string>
+    <string name="result_plant_type">نوع النبات</string>
+    <string name="result_disease">المرض</string>
+    <string name="result_description">الوصف</string>
+    <string name="result_treatment">العلاج</string>
+
+    <!-- History -->
+    <string name="history_title">سجل المسح</string>
+    <string name="history_empty">لا توجد عمليات مسح بعد</string>
+    <string name="history_empty_desc">سيظهر سجل المسح هنا</string>
+    <string name="history_delete">حذف</string>
+    <string name="history_delete_confirm">حذف هذا المسح؟</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_api_key">مفتاح API</string>
+    <string name="settings_api_key_placeholder">أدخل مفتاح Google AI API</string>
+    <string name="settings_api_key_hint">احصل على المفتاح من Google AI Studio</string>
+    <string name="settings_model">نموذج الذكاء الاصطناعي</string>
+    <string name="settings_model_placeholder">اسم النموذج (مثل gemma-3–27b-it)</string>
+    <string name="settings_model_loading">جارٍ تحميل النماذج…</string>
+    <string name="settings_model_failed">تعذّر تحميل النماذج. أدخل يدوياً:</string>
+    <string name="settings_language">اللغة</string>
+    <string name="settings_english">English</string>
+    <string name="settings_arabic">العربية</string>
+    <string name="settings_save">حفظ الإعدادات</string>
+    <string name="settings_saved">تم حفظ الإعدادات!</string>
+    <string name="settings_restart_required">يلزم إعادة التشغيل</string>
+    <string name="settings_restart_confirm">يحتاج التطبيق لإعادة التشغيل لتطبيق تغييرات اللغة.</string>
+    <string name="settings_restart_manually">يرجى إعادة تشغيل التطبيق يدوياً.</string>
+    <string name="settings_confirm">إعادة التشغيل</string>
+    <string name="settings_setup_guide">دليل الإعداد</string>
+    <string name="settings_about">حول</string>
+    <string name="settings_version">الإصدار</string>
+    <string name="settings_made_by">صنع بواسطة bbioon.com</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome">مرحباً!</string>
+    <string name="onboarding_subtitle">كاشف أمراض النباتات بالذكاء الاصطناعي</string>
+    <string name="onboarding_api_key_title">إعداد مفتاح API</string>
+    <string name="onboarding_api_key_desc">احصل على مفتاح API مجاني من Google AI Studio لبدء تحليل النباتات.</string>
+    <string name="onboarding_get_key">الحصول على مفتاح API</string>
+    <string name="onboarding_language_title">اختر اللغة</string>
+    <string name="onboarding_get_started">ابدأ</string>
+    <string name="onboarding_skip">تخطي الآن</string>
+
+    <!-- Errors -->
+    <string name="error_generic">حدث خطأ ما</string>
+    <string name="error_no_api_key">يرجى إدخال مفتاح API في الإعدادات</string>
+    <string name="error_invalid_api_key">مفتاح API غير صالح</string>
+    <string name="error_rate_limit">طلبات كثيرة. يرجى الانتظار.</string>
+    <string name="error_timeout">انتهت مهلة الطلب</string>
+    <string name="error_parse">تعذّر تحليل الاستجابة</string>
+    <string name="error_image_too_large">الصورة كبيرة جداً</string>
+    <string name="error_permission_denied">تم رفض الإذن</string>
+    <string name="error_camera_unavailable">الكاميرا غير متوفرة</string>
+
+    <!-- Common -->
+    <string name="cancel">إلغاء</string>
+    <string name="ok">حسناً</string>
+    <string name="delete">حذف</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+</resources>
