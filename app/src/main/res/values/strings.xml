@@ -24,9 +24,28 @@
     <string name="result_diseased">Diseased</string>
     <string name="result_plant_name">Plant Name</string>
     <string name="result_plant_type">Plant Type</string>
+    <string name="result_scientific_name">Scientific Name</string>
     <string name="result_disease">Disease</string>
+    <string name="result_scientific_disease_name">Scientific Disease Name</string>
+    <string name="result_pathogen_type">Pathogen Type</string>
+    <string name="result_severity">Severity</string>
+    <string name="result_disease_stage">Disease Stage</string>
+    <string name="result_spread_risk">Spread Risk</string>
+    <string name="result_symptoms">Symptoms</string>
+    <string name="result_cause">Cause</string>
     <string name="result_description">Description</string>
     <string name="result_treatment">Treatment</string>
+    <string name="result_prevention">Prevention</string>
+    <string name="result_favorable_conditions">Favorable Conditions</string>
+    <string name="result_notes">Professional Notes</string>
+
+    <!-- Section headers -->
+    <string name="result_section_plant_info">Plant Information</string>
+    <string name="result_section_diagnosis">Diagnosis</string>
+    <string name="result_section_treatment">Treatment &amp; Prevention</string>
+    <string name="result_section_professional">Professional Details</string>
+    <string name="result_show_professional">Show Professional Details</string>
+    <string name="result_hide_professional">Hide Professional Details</string>
 
     <!-- History -->
     <string name="history_title">Scan History</string>

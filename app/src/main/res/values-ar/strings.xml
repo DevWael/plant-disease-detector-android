@@ -24,9 +24,28 @@
     <string name="result_diseased">مصاب</string>
     <string name="result_plant_name">اسم النبات</string>
     <string name="result_plant_type">نوع النبات</string>
+    <string name="result_scientific_name">الاسم العلمي</string>
     <string name="result_disease">المرض</string>
+    <string name="result_scientific_disease_name">الاسم العلمي للمرض</string>
+    <string name="result_pathogen_type">نوع المُسبب المرضي</string>
+    <string name="result_severity">الشدة</string>
+    <string name="result_disease_stage">مرحلة المرض</string>
+    <string name="result_spread_risk">خطر الانتشار</string>
+    <string name="result_symptoms">الأعراض</string>
+    <string name="result_cause">السبب</string>
     <string name="result_description">الوصف</string>
     <string name="result_treatment">العلاج</string>
+    <string name="result_prevention">الوقاية</string>
+    <string name="result_favorable_conditions">الظروف المساعدة</string>
+    <string name="result_notes">ملاحظات مهنية</string>
+
+    <!-- Section headers -->
+    <string name="result_section_plant_info">معلومات النبات</string>
+    <string name="result_section_diagnosis">التشخيص</string>
+    <string name="result_section_treatment">العلاج والوقاية</string>
+    <string name="result_section_professional">تفاصيل مهنية</string>
+    <string name="result_show_professional">عرض التفاصيل المهنية</string>
+    <string name="result_hide_professional">إخفاء التفاصيل المهنية</string>
 
     <!-- History -->
     <string name="history_title">سجل المسح</string>

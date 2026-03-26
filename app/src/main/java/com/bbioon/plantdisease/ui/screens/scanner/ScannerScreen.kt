@@ -240,11 +240,22 @@ fun ScannerScreen(
                             scope.launch {
                                 val scan = ScanRecord(
                                     plantName = analysisResult.plantName,
+                                    scientificName = analysisResult.scientificName,
                                     plantType = analysisResult.plantType,
                                     isHealthy = analysisResult.isHealthy,
                                     diseaseName = analysisResult.diseaseName,
+                                    scientificDiseaseName = analysisResult.scientificDiseaseName,
+                                    pathogenType = analysisResult.pathogenType,
+                                    severity = analysisResult.severity,
+                                    diseaseStage = analysisResult.diseaseStage,
+                                    spreadRisk = analysisResult.spreadRisk,
+                                    symptoms = analysisResult.symptoms,
+                                    cause = analysisResult.cause,
                                     description = analysisResult.description,
                                     treatment = analysisResult.treatment,
+                                    prevention = analysisResult.prevention,
+                                    favorableConditions = analysisResult.favorableConditions,
+                                    notes = analysisResult.notes,
                                     imageUri = imageUri.toString(),
                                 )
                                 db.scanDao().insert(scan)
@@ -277,11 +288,22 @@ fun ScannerScreen(
                 if (showPrintSheet && imageUri != null) {
                     val printScan = ScanRecord(
                         plantName = analysisResult.plantName,
+                        scientificName = analysisResult.scientificName,
                         plantType = analysisResult.plantType,
                         isHealthy = analysisResult.isHealthy,
                         diseaseName = analysisResult.diseaseName,
+                        scientificDiseaseName = analysisResult.scientificDiseaseName,
+                        pathogenType = analysisResult.pathogenType,
+                        severity = analysisResult.severity,
+                        diseaseStage = analysisResult.diseaseStage,
+                        spreadRisk = analysisResult.spreadRisk,
+                        symptoms = analysisResult.symptoms,
+                        cause = analysisResult.cause,
                         description = analysisResult.description,
                         treatment = analysisResult.treatment,
+                        prevention = analysisResult.prevention,
+                        favorableConditions = analysisResult.favorableConditions,
+                        notes = analysisResult.notes,
                         imageUri = imageUri.toString(),
                     )
                     PrinterBottomSheet(
