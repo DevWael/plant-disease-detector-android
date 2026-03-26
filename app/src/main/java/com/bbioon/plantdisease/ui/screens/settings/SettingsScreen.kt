@@ -157,7 +157,8 @@ fun SettingsScreen(
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(Surface)
                                     .border(1.dp, Border, RoundedCornerShape(12.dp))
-                                    .heightIn(max = 250.dp),
+                                    .heightIn(max = 250.dp)
+                                    .verticalScroll(rememberScrollState()),
                             ) {
                                 models.forEach { m ->
                                     Box(
