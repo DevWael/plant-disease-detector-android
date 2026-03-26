@@ -114,11 +114,22 @@ fun ScanDetailScreen(
             AnalysisResultCard(
                 result = AnalysisResult(
                     plantName = currentScan.plantName,
+                    scientificName = currentScan.scientificName,
                     plantType = currentScan.plantType,
                     isHealthy = currentScan.isHealthy,
                     diseaseName = currentScan.diseaseName,
+                    scientificDiseaseName = currentScan.scientificDiseaseName,
+                    pathogenType = currentScan.pathogenType,
+                    severity = currentScan.severity,
+                    diseaseStage = currentScan.diseaseStage,
+                    spreadRisk = currentScan.spreadRisk,
+                    symptoms = currentScan.symptoms,
+                    cause = currentScan.cause,
                     description = currentScan.description,
                     treatment = currentScan.treatment,
+                    prevention = currentScan.prevention,
+                    favorableConditions = currentScan.favorableConditions,
+                    notes = currentScan.notes,
                 ),
             )
 
