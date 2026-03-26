@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import com.bbioon.plantdisease.data.local.AppDatabase
 import com.bbioon.plantdisease.data.model.AnalysisResult
 import com.bbioon.plantdisease.data.model.ScanRecord
 import com.bbioon.plantdisease.ui.components.AnalysisResultCard
+import com.bbioon.plantdisease.ui.components.PrinterBottomSheet
 import com.bbioon.plantdisease.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -39,6 +41,7 @@ fun ScanDetailScreen(
     val scope = rememberCoroutineScope()
     val db = remember { AppDatabase.getInstance(context) }
     var scan by remember { mutableStateOf<ScanRecord?>(null) }
+    var showPrintSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(scanId) {
         scan = db.scanDao().getScanById(scanId)
@@ -63,6 +66,9 @@ fun ScanDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showPrintSheet = true }) {
+                        Icon(Icons.Default.Print, contentDescription = stringResource(R.string.print_title), tint = Primary)
+                    }
                     IconButton(
                         onClick = {
                             android.app.AlertDialog.Builder(context)
@@ -123,6 +129,14 @@ fun ScanDetailScreen(
                 fontSize = 14.sp,
                 color = TextMuted,
                 modifier = Modifier.padding(start = 4.dp),
+            )
+        }
+
+        // Print bottom sheet
+        if (showPrintSheet) {
+            PrinterBottomSheet(
+                scan = currentScan,
+                onDismiss = { showPrintSheet = false },
             )
         }
     }

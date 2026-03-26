@@ -79,6 +79,20 @@
     <string name="error_permission_denied">Permission denied</string>
     <string name="error_camera_unavailable">Camera is not available</string>
 
+    <!-- Print -->
+    <string name="print_title">Print Scan</string>
+    <string name="print_select_printer">Select Printer</string>
+    <string name="print_no_paired">No paired printers found. Pair your printer in Bluetooth settings first.</string>
+    <string name="print_connecting">Connecting…</string>
+    <string name="print_printing">Printing…</string>
+    <string name="print_success">Printed successfully!</string>
+    <string name="print_failed">Print failed. Try again.</string>
+    <string name="print_retry">Retry</string>
+    <string name="print_bluetooth_required">Bluetooth permission required</string>
+    <string name="print_open_settings">Open Settings</string>
+    <string name="print_scanning">Scanning for printers…</string>
+    <string name="print_rescan">Scan again</string>
+
     <!-- Common -->
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>

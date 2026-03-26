@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
@@ -39,6 +40,7 @@ import com.bbioon.plantdisease.data.model.ScanRecord
 import com.bbioon.plantdisease.data.remote.GoogleAIService
 import com.bbioon.plantdisease.ui.components.AnalysisResultCard
 import com.bbioon.plantdisease.ui.components.LoadingOverlay
+import com.bbioon.plantdisease.ui.components.PrinterBottomSheet
 import com.bbioon.plantdisease.ui.theme.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -63,8 +65,25 @@ fun ScannerScreen(
     var error by remember { mutableStateOf<String?>(null) }
     var analysisJob by remember { mutableStateOf<Job?>(null) }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    var showPrintSheet by remember { mutableStateOf(false) }
 
-    // Create a unique temp file URI for each capture
+    // Persistent scans directory for saved images
+    val scansDir = remember {
+        File(context.filesDir, "scans").also { it.mkdirs() }
+    }
+
+    // Copy a content URI to persistent app storage and return the local file URI
+    fun copyToLocalStorage(sourceUri: Uri): Uri {
+        val destFile = File(scansDir, "scan_${System.currentTimeMillis()}.jpg")
+        context.contentResolver.openInputStream(sourceUri)?.use { input ->
+            destFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        } ?: throw Exception("Cannot read image")
+        return Uri.fromFile(destFile)
+    }
+
+    // Create a unique temp file URI for camera capture
     fun createTempUri(): Uri {
         val tempFile = File(context.cacheDir, "camera_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(context, "${context.packageName}.provider", tempFile)
@@ -74,28 +93,49 @@ fun ScannerScreen(
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         val capturedUri = pendingCameraUri
         if (success && capturedUri != null) {
-            imageUri = capturedUri
-            processAndAnalyze(context, capturedUri, prefs, apiService, scope,
-                onBase64 = { base64Image = it },
-                onLoading = { isLoading = it },
-                onResult = { result = it },
-                onError = { error = it },
-                onJob = { analysisJob = it },
-            )
+            // Copy camera capture to persistent storage
+            scope.launch {
+                try {
+                    val persistedUri = withContext(Dispatchers.IO) {
+                        copyToLocalStorage(capturedUri)
+                    }
+                    imageUri = persistedUri
+                    processAndAnalyze(context, persistedUri, prefs, apiService, scope,
+                        onBase64 = { base64Image = it },
+                        onLoading = { isLoading = it },
+                        onResult = { result = it },
+                        onError = { error = it },
+                        onJob = { analysisJob = it },
+                    )
+                } catch (e: Exception) {
+                    error = e.message ?: context.getString(R.string.error_generic)
+                }
+            }
         }
     }
 
     // Gallery launcher
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            imageUri = it
-            processAndAnalyze(context, it, prefs, apiService, scope,
-                onBase64 = { b -> base64Image = b },
-                onLoading = { l -> isLoading = l },
-                onResult = { r -> result = r },
-                onError = { e -> error = e },
-                onJob = { j -> analysisJob = j },
-            )
+            // Copy gallery image to persistent app storage immediately
+            // so the URI remains valid after the temp content grant expires
+            scope.launch {
+                try {
+                    val persistedUri = withContext(Dispatchers.IO) {
+                        copyToLocalStorage(it)
+                    }
+                    imageUri = persistedUri
+                    processAndAnalyze(context, persistedUri, prefs, apiService, scope,
+                        onBase64 = { b -> base64Image = b },
+                        onLoading = { l -> isLoading = l },
+                        onResult = { r -> result = r },
+                        onError = { e -> error = e },
+                        onJob = { j -> analysisJob = j },
+                    )
+                } catch (e: Exception) {
+                    error = e.message ?: context.getString(R.string.error_generic)
+                }
+            }
         }
     }
 
@@ -219,6 +259,35 @@ fun ScannerScreen(
                         Spacer(Modifier.width(6.dp))
                         Text(stringResource(R.string.scanner_save))
                     }
+                }
+
+                // Print button
+                OutlinedButton(
+                    onClick = { showPrintSheet = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary),
+                ) {
+                    Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.print_title))
+                }
+
+                // Print bottom sheet
+                if (showPrintSheet && imageUri != null) {
+                    val printScan = ScanRecord(
+                        plantName = analysisResult.plantName,
+                        plantType = analysisResult.plantType,
+                        isHealthy = analysisResult.isHealthy,
+                        diseaseName = analysisResult.diseaseName,
+                        description = analysisResult.description,
+                        treatment = analysisResult.treatment,
+                        imageUri = imageUri.toString(),
+                    )
+                    PrinterBottomSheet(
+                        scan = printScan,
+                        onDismiss = { showPrintSheet = false },
+                    )
                 }
             }
 

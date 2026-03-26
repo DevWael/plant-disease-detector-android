@@ -79,6 +79,20 @@
     <string name="error_permission_denied">تم رفض الإذن</string>
     <string name="error_camera_unavailable">الكاميرا غير متوفرة</string>
 
+    <!-- Print -->
+    <string name="print_title">طباعة المسح</string>
+    <string name="print_select_printer">اختر الطابعة</string>
+    <string name="print_no_paired">لا توجد طابعات مقترنة. قم بإقران الطابعة في إعدادات البلوتوث أولاً.</string>
+    <string name="print_connecting">جارٍ الاتصال…</string>
+    <string name="print_printing">جارٍ الطباعة…</string>
+    <string name="print_success">تمت الطباعة بنجاح!</string>
+    <string name="print_failed">فشلت الطباعة. حاول مرة أخرى.</string>
+    <string name="print_retry">إعادة المحاولة</string>
+    <string name="print_bluetooth_required">إذن البلوتوث مطلوب</string>
+    <string name="print_open_settings">فتح الإعدادات</string>
+    <string name="print_scanning">جارٍ البحث عن طابعات…</string>
+    <string name="print_rescan">بحث مرة أخرى</string>
+
     <!-- Common -->
     <string name="cancel">إلغاء</string>
     <string name="ok">حسناً</string>
