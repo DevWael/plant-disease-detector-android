@@ -145,10 +145,34 @@ Return VALID JSON with these keys:
     }
 
     private fun extractTextFromResponse(responseBody: String): String? {
-        // Simple extraction: find "text":"..." in the response
-        val regex = """"text"\s*:\s*"((?:[^"\\]|\\.)*)"""".toRegex()
-        val match = regex.find(responseBody)
-        return match?.groupValues?.get(1)
+        // Gemma 4 thinking mode returns multiple parts:
+        //   {"thought":true,"text":"reasoning..."}, {"text":"actual answer"}
+        // We need to find "text" parts that are NOT preceded by "thought":true
+
+        // Strategy: extract all parts, skip ones tagged as thoughts, return the last non-thought text
+        val partsRegex = """\{[^{}]*"text"\s*:\s*"((?:[^"\\]|\\.)*)"\s*[^{}]*\}""".toRegex()
+        val thoughtRegex = """"thought"\s*:\s*true""".toRegex()
+
+        val candidates = mutableListOf<String>()
+        for (match in partsRegex.findAll(responseBody)) {
+            val partBlock = match.value
+            // Skip parts that are thinking/reasoning
+            if (thoughtRegex.containsMatchIn(partBlock)) continue
+            val textValue = match.groupValues[1]
+                .replace("\\n", "\n")
+                .replace("\\\"", "\"")
+                .replace("\\\\", "\\")
+            candidates.add(textValue)
+        }
+
+        // Return the last non-thought text part (most likely the actual answer)
+        // If no non-thought parts found, fall back to last text part overall
+        if (candidates.isNotEmpty()) return candidates.last()
+
+        // Fallback: grab any "text" field
+        val fallbackRegex = """"text"\s*:\s*"((?:[^"\\]|\\.)*)"""".toRegex()
+        val allMatches = fallbackRegex.findAll(responseBody).toList()
+        return allMatches.lastOrNull()?.groupValues?.get(1)
             ?.replace("\\n", "\n")
             ?.replace("\\\"", "\"")
             ?.replace("\\\\", "\\")
