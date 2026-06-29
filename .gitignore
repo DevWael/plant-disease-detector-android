@@ -9,3 +9,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Build outputs & signing secrets
+*.apk
+*.aab
+keystore.properties
+*.jks
+*.keystore
