@@ -33,7 +33,8 @@ class PreferencesManager(private val context: Context) {
         private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_FIRST_LAUNCH = booleanPreferencesKey("first_launch_done")
         private const val KEY_API_KEY = "api_key"
-        const val DEFAULT_MODEL = "gemma-3-27b-it"
+        // gemma-3-* was retired by Google; gemma-4-31b-it is the current default.
+        const val DEFAULT_MODEL = "gemma-4-31b-it"
     }
 
     // --- API Key (encrypted) ---
@@ -52,7 +53,9 @@ class PreferencesManager(private val context: Context) {
 
     suspend fun getModel(): String {
         return context.dataStore.data.map { prefs ->
-            prefs[KEY_MODEL] ?: DEFAULT_MODEL
+            val saved = prefs[KEY_MODEL] ?: DEFAULT_MODEL
+            // Google retired the gemma-3-* models (HTTP 404); migrate existing installs.
+            if (saved.startsWith("gemma-3")) DEFAULT_MODEL else saved
         }.first()
     }
 

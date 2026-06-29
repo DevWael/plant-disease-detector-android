@@ -5,6 +5,7 @@ import com.bbioon.plantdisease.data.model.ApiError
 import com.bbioon.plantdisease.data.model.ModelInfo
 import com.bbioon.plantdisease.data.model.ModelsResponse
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -25,6 +26,7 @@ class GoogleAIService {
 
     companion object {
         private const val API_BASE = "https://generativelanguage.googleapis.com/v1beta"
+        private const val MAX_ATTEMPTS = 3
     }
 
     suspend fun analyzeImage(
@@ -36,8 +38,13 @@ class GoogleAIService {
         val url = "$API_BASE/models/$model:generateContent?key=$apiKey"
         val isGemma = model.lowercase().startsWith("gemma")
 
-        val generationConfig = if (!isGemma)
-            ""","generationConfig":{"response_mime_type":"application/json"}""" else ""
+        // Gemini supports native JSON output; Gemma does not, but it thinks by default — and only
+        // thinkingLevel:"MINIMAL" reliably stops it (includeThoughts/thinkingBudget are ignored or
+        // rejected). Minimizing thinking keeps the answer from being truncated and saves tokens.
+        val generationConfig = if (isGemma)
+            ""","generationConfig":{"thinkingConfig":{"thinkingLevel":"MINIMAL"}}"""
+        else
+            ""","generationConfig":{"response_mime_type":"application/json"}"""
 
         val prompt = if (language == "ar") {
             """أنت خبير أمراض نباتات. حلّل صورة النبات وشخّص حالته.
@@ -88,39 +95,71 @@ Return VALID JSON with these keys:
 - "notes": Differential diagnosis or lab suggestions, 1 sentence (null if healthy)"""
         }
 
-        val body = """
+        fun buildBody(genConfig: String) = """
             {"contents":[{"parts":[
                 {"text":"${prompt.replace("\"", "\\\"")}"},
                 {"inline_data":{"mime_type":"image/jpeg","data":"$base64Image"}}
-            ]}]$generationConfig}
+            ]}]$genConfig}
         """.trimIndent()
 
-        val request = Request.Builder()
-            .url(url)
-            .post(body.toRequestBody("application/json".toMediaType()))
-            .build()
-
-        val response = client.newCall(request).execute()
-
-        if (!response.isSuccessful) {
-            val errorBody = response.body?.string() ?: ""
-            val statusCode = response.code
-            if (statusCode == 429) throw Exception("RATE_LIMIT")
-            if (statusCode == 401 || statusCode == 403) throw Exception("INVALID_API_KEY")
-            val errorMsg = try {
-                json.decodeFromString<ApiError>(errorBody).error?.message
-            } catch (_: Exception) { null }
-            throw Exception(errorMsg ?: "API error ($statusCode)")
+        val responseBody = try {
+            postForBody(url, buildBody(generationConfig))
+        } catch (e: Exception) {
+            // Some Gemma variants reject thinkingConfig; retry once without it (parser tolerates thinking).
+            if (isGemma && e.message?.contains("thinking", ignoreCase = true) == true) {
+                postForBody(url, buildBody(""))
+            } else throw e
         }
 
-        val responseBody = response.body?.string() ?: throw Exception("EMPTY_RESPONSE")
-        val rawText = extractTextFromResponse(responseBody) ?: throw Exception("EMPTY_RESPONSE")
-        val result = extractJsonFromText(rawText) ?: throw Exception("PARSE_ERROR")
+        val rawText = GeminiResponseParser.extractAnswerText(responseBody)
+            ?: throw Exception("EMPTY_RESPONSE")
+        val result = GeminiResponseParser.parseAnalysis(rawText) ?: throw Exception("PARSE_ERROR")
 
         result.copy(
             plantName = result.plantName.ifBlank { "Unknown" },
             plantType = result.plantType.ifBlank { "Unknown" },
         )
+    }
+
+    /**
+     * POSTs [body] and returns the response body string. Retries transient 5xx errors (the API
+     * intermittently returns HTTP 500 "Internal error" for Gemma) with linear backoff. Maps
+     * terminal errors to the sentinel messages the UI knows about.
+     */
+    private suspend fun postForBody(url: String, body: String): String {
+        var attempt = 0
+        while (true) {
+            attempt++
+            val request = Request.Builder()
+                .url(url)
+                .post(body.toRequestBody("application/json".toMediaType()))
+                .build()
+            val response = client.newCall(request).execute()
+            val code = response.code
+
+            if (response.isSuccessful) {
+                return response.body?.string() ?: throw Exception("EMPTY_RESPONSE")
+            }
+
+            val errorBody = response.body?.string() ?: ""
+            response.close()
+
+            when (code) {
+                429 -> throw Exception("RATE_LIMIT")
+                401, 403 -> throw Exception("INVALID_API_KEY")
+            }
+
+            // Transient server-side errors: back off and retry.
+            if (code in 500..599 && attempt < MAX_ATTEMPTS) {
+                delay(1000L * attempt)
+                continue
+            }
+
+            val errorMsg = try {
+                json.decodeFromString<ApiError>(errorBody).error?.message
+            } catch (_: Exception) { null }
+            throw Exception(errorMsg ?: "API error ($code)")
+        }
     }
 
     suspend fun fetchModels(apiKey: String): List<ModelInfo> = withContext(Dispatchers.IO) {
@@ -142,58 +181,5 @@ Return VALID JSON with these keys:
             methods.contains("generateContent") &&
                 (name.contains("gemma") || name.contains("gemini"))
         }.map { it.copy(name = it.name.removePrefix("models/")) }
-    }
-
-    private fun extractTextFromResponse(responseBody: String): String? {
-        // Gemma 4 thinking mode returns multiple parts:
-        //   {"thought":true,"text":"reasoning..."}, {"text":"actual answer"}
-        // We need to find "text" parts that are NOT preceded by "thought":true
-
-        // Strategy: extract all parts, skip ones tagged as thoughts, return the last non-thought text
-        val partsRegex = """\{[^{}]*"text"\s*:\s*"((?:[^"\\]|\\.)*)"\s*[^{}]*\}""".toRegex()
-        val thoughtRegex = """"thought"\s*:\s*true""".toRegex()
-
-        val candidates = mutableListOf<String>()
-        for (match in partsRegex.findAll(responseBody)) {
-            val partBlock = match.value
-            // Skip parts that are thinking/reasoning
-            if (thoughtRegex.containsMatchIn(partBlock)) continue
-            val textValue = match.groupValues[1]
-                .replace("\\n", "\n")
-                .replace("\\\"", "\"")
-                .replace("\\\\", "\\")
-            candidates.add(textValue)
-        }
-
-        // Return the last non-thought text part (most likely the actual answer)
-        // If no non-thought parts found, fall back to last text part overall
-        if (candidates.isNotEmpty()) return candidates.last()
-
-        // Fallback: grab any "text" field
-        val fallbackRegex = """"text"\s*:\s*"((?:[^"\\]|\\.)*)"""".toRegex()
-        val allMatches = fallbackRegex.findAll(responseBody).toList()
-        return allMatches.lastOrNull()?.groupValues?.get(1)
-            ?.replace("\\n", "\n")
-            ?.replace("\\\"", "\"")
-            ?.replace("\\\\", "\\")
-    }
-
-    private fun extractJsonFromText(text: String): AnalysisResult? {
-        // 1. Try direct parse
-        try { return json.decodeFromString<AnalysisResult>(text.trim()) } catch (_: Exception) {}
-
-        // 2. Try markdown code block
-        val codeBlock = Regex("""```(?:json)?\s*\n?([\s\S]*?)\n?\s*```""").find(text)
-        codeBlock?.groupValues?.get(1)?.let { block ->
-            try { return json.decodeFromString<AnalysisResult>(block.trim()) } catch (_: Exception) {}
-        }
-
-        // 3. Try raw object extraction
-        val objectMatch = Regex("""\{[\s\S]*\}""").find(text)
-        objectMatch?.value?.let { obj ->
-            try { return json.decodeFromString<AnalysisResult>(obj) } catch (_: Exception) {}
-        }
-
-        return null
     }
 }
